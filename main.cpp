@@ -8,9 +8,6 @@
 using namespace std;
 
 bool cmp(Segment a, Segment b) {
-    /*if (min(a.dot1.get_x(), a.dot2.get_x()) == min(b.dot1.get_x(), b.dot2.get_x()))
-        return max(a.dot1.get_x(), a.dot2.get_x()) < max(b.dot1.get_x(), b.dot2.get_x());
-    else*/
     return min(a.dot1.get_x(), a.dot2.get_x()) < min(b.dot1.get_x(), b.dot2.get_x());
 }
 
@@ -22,11 +19,16 @@ void shell_show(int n, vector<Segment> &shell) {
 }
 
 int intersection(Dot &point, Segment &segment) {
-    int left_point_of_segment = min(segment.dot1.get_x(), segment.dot2.get_x());
+    int left_point_of_segment_x = min(segment.dot1.get_x(), segment.dot2.get_x());
+    int left_point_of_segment_y;
+    if (segment.dot1.get_x() == left_point_of_segment_x)
+        left_point_of_segment_y = segment.dot1.get_y();
+    else
+        left_point_of_segment_y = segment.dot2.get_y();
     int hight = abs(segment.dot1.get_y() - segment.dot2.get_y());
     int len = abs(segment.dot1.get_x() - segment.dot2.get_x());
-    int ans = left_point_of_segment + abs(point.get_x() - left_point_of_segment) * len / hight;
-    if (abs(point.get_x() - left_point_of_segment) * len % hight != 0)
+    int ans = left_point_of_segment_x + abs(point.get_y() - left_point_of_segment_y) * len / hight;
+    if (abs(point.get_y() - left_point_of_segment_y) * len % hight != 0)
         ++ans;
     return ans;
 }
@@ -48,7 +50,7 @@ struct cmp_for_dot_map {
     }
 };
 
-bool check_into(int n, vector<Segment> &shell, int i, vector<Dot> &points,
+bool check_into(vector<Segment> &shell, int i, vector<Dot> &points,
                 map<Dot, Dot, cmp_for_dot_map> &navigate_segments_right,
                 map<Dot, Dot, cmp_for_dot_map> &navigate_segments_left) {
     Dot point = Dot(points[i].get_x(), points[i].get_y());
@@ -111,8 +113,12 @@ int main() {
     //shell_show(n, shell);
     int cnt = 0;
     for (int i = 0; i < m; ++i) {
-        if (check_into(n, shell, i, points, navigate_segments_left, navigate_segments_right))
+        if (check_into(shell, i, points, navigate_segments_left, navigate_segments_right)) {
             ++cnt;
+            cout << points[i].get_x() << ' ' << points[i].get_y() << ' ' << '+' << endl;
+        } else {
+            cout << points[i].get_x() << ' ' << points[i].get_y() << ' ' << '-' << endl;
+        }
     }
     cout << cnt << endl;
     return 0;
