@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <map>
 #include "Segment.h"
 #include "initial_shell.h"
 
@@ -35,23 +36,61 @@ bool point_between_segment(Dot &point, Segment &segment) {
            min(segment.dot1.get_y(), segment.dot2.get_y()) < point.get_y();
 }
 
-bool check_into(int n, vector<Segment> &shell, int m, vector<Dot> &points) {
+bool point_on_parallel_segment(Dot &point, Segment &segment) {
+    return segment.dot1.get_y() == segment.dot2.get_y() && segment.dot1.get_y() == point.get_y();
+}
+
+struct cmp_for_dot_map {
+    bool operator()(Dot a, Dot b) const {
+        if (a.get_x() == b.get_x())
+            return a.get_y() < b.get_y();
+        return a.get_x() < b.get_x();
+    }
+};
+
+bool check_into(int n, vector<Segment> &shell, int i, vector<Dot> &points,
+                map<Dot, Dot, cmp_for_dot_map> &navigate_segments_right,
+                map<Dot, Dot, cmp_for_dot_map> &navigate_segments_left) {
+    Dot point = Dot(points[i].get_x(), points[i].get_y());
     bool into = false;
     int intersection_x;
-    for (auto &point:points) {
-        for (auto &segment:shell) {
-            if (point_between_segment(point, segment)) {
-                intersection_x = intersection(point, segment);
-                if (!into) {
-                    if (point.get_x() < intersection_x)
-                        return false;
-                } else {
-                    if (point.get_x() <= intersection_x)
-                        return true;
+    for (auto &segment:shell) {
+        if (point_between_segment(point, segment)) {
+            intersection_x = intersection(point, segment);
+            if (!into) {
+                if (point.get_x() < intersection_x) {
+                    return false;
                 }
-                into = !into;
+            } else {
+                if (point.get_x() <= intersection_x) {
+                    return true;
+                }
             }
-
+            into = !into;
+        } else if (point_on_parallel_segment(point, segment)) {
+            Segment seg1, seg2;
+            seg1 = Segment(segment.dot1, navigate_segments_right[segment.dot1]);
+            seg2 = Segment(segment.dot2, navigate_segments_left[segment.dot2]);
+            if (seg1.dot1.get_y() == seg1.dot2.get_y()) {
+                seg1 = Segment(segment.dot2, navigate_segments_right[segment.dot2]);
+                seg2 = Segment(segment.dot1, navigate_segments_left[segment.dot1]);
+            }
+            bool seg1_above_point = false, seg2_above_point = false;
+            if (seg1.dot2.get_y() > point.get_y())
+                seg1_above_point = true;
+            if (seg2.dot2.get_y() > point.get_y())
+                seg2_above_point = true;
+            if (!into) {
+                if (point.get_x() < min(segment.dot1.get_x(), segment.dot2.get_x()))
+                    return false;
+            } else {
+                if (point.get_x() <= min(segment.dot1.get_x(), segment.dot2.get_x()))
+                    return true;
+            }
+            if (point.get_x() <= max(segment.dot1.get_x(), segment.dot2.get_x()))
+                return true;
+            if (seg1_above_point != seg2_above_point)
+                into = !into;
         }
     }
     return false;
@@ -60,16 +99,21 @@ bool check_into(int n, vector<Segment> &shell, int m, vector<Dot> &points) {
 int main() {
     int n, m;
     cin >> n >> m;
-    vector<Segment> shell(2 * n);
+    vector<Segment> shell(n);
     vector<Dot> points(m);
     initial_shell(n, m, shell, points);
-    //sort(shell.begin(), shell.end(), cmp);
-    shell_show(n, shell);
-    /*int cnt = 0;
+    map<Dot, Dot, cmp_for_dot_map> navigate_segments_right, navigate_segments_left;
+    for (auto &segment:shell) {
+        navigate_segments_right[segment.dot1] = segment.dot2;
+        navigate_segments_left[segment.dot2] = segment.dot1;
+    }
+    sort(shell.begin(), shell.end(), cmp);
+    //shell_show(n, shell);
+    int cnt = 0;
     for (int i = 0; i < m; ++i) {
-        if (check_into(n, shell, m, points))
+        if (check_into(n, shell, i, points, navigate_segments_left, navigate_segments_right))
             ++cnt;
     }
-    cout << cnt << endl;*/
+    cout << cnt << endl;
     return 0;
 }
