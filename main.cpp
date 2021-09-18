@@ -7,10 +7,10 @@
 using namespace std;
 
 bool cmp(Segment a, Segment b) {
-    if (min(a.dot1.get_x(), a.dot2.get_x()) == min(b.dot1.get_x(), b.dot2.get_x()))
+    /*if (min(a.dot1.get_x(), a.dot2.get_x()) == min(b.dot1.get_x(), b.dot2.get_x()))
         return max(a.dot1.get_x(), a.dot2.get_x()) < max(b.dot1.get_x(), b.dot2.get_x());
-    else
-        return min(a.dot1.get_x(), a.dot2.get_x()) < min(b.dot1.get_x(), b.dot2.get_x());
+    else*/
+    return min(a.dot1.get_x(), a.dot2.get_x()) < min(b.dot1.get_x(), b.dot2.get_x());
 }
 
 void shell_show(int n, vector<Segment> &shell) {
@@ -63,13 +63,13 @@ int main() {
     vector<Segment> shell(2 * n);
     vector<Dot> points(m);
     initial_shell(n, m, shell, points);
-    sort(shell.begin(), shell.end(), cmp);
+    //sort(shell.begin(), shell.end(), cmp);
     shell_show(n, shell);
-    int cnt = 0;
+    /*int cnt = 0;
     for (int i = 0; i < m; ++i) {
         if (check_into(n, shell, m, points))
             ++cnt;
     }
-    cout << cnt << endl;
+    cout << cnt << endl;*/
     return 0;
 }
