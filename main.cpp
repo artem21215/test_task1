@@ -8,6 +8,8 @@
 using namespace std;
 
 bool cmp(Segment a, Segment b) {
+    if (min(a.dot1.get_x(), a.dot2.get_x()) == min(b.dot1.get_x(), b.dot2.get_x()))
+        return max(a.dot1.get_x(), a.dot2.get_x()) < max(b.dot1.get_x(), b.dot2.get_x());
     return min(a.dot1.get_x(), a.dot2.get_x()) < min(b.dot1.get_x(), b.dot2.get_x());
 }
 
@@ -18,7 +20,7 @@ void shell_show(int n, vector<Segment> &shell) {
     }
 }
 
-int intersection(Dot &point, Segment &segment) {
+pair<int, bool> intersection(Dot &point, Segment &segment) {
     int left_point_of_segment_x = min(segment.dot1.get_x(), segment.dot2.get_x());
     int left_point_of_segment_y;
     if (segment.dot1.get_x() == left_point_of_segment_x)
@@ -28,9 +30,11 @@ int intersection(Dot &point, Segment &segment) {
     int hight = abs(segment.dot1.get_y() - segment.dot2.get_y());
     int len = abs(segment.dot1.get_x() - segment.dot2.get_x());
     int ans = left_point_of_segment_x + abs(point.get_y() - left_point_of_segment_y) * len / hight;
-    if (abs(point.get_y() - left_point_of_segment_y) * len % hight != 0)
-        ++ans;
-    return ans;
+    bool no_ost = false;
+    if (abs(point.get_y() - left_point_of_segment_y) * len % hight == 0)
+        no_ost = true;
+    ans++;
+    return {ans, no_ost};
 }
 
 bool point_between_segment(Dot &point, Segment &segment) {
@@ -38,8 +42,12 @@ bool point_between_segment(Dot &point, Segment &segment) {
            min(segment.dot1.get_y(), segment.dot2.get_y()) < point.get_y();
 }
 
-bool point_on_parallel_segment(Dot &point, Segment &segment) {
+bool point_on_parallel_segment_y(Dot &point, Segment &segment) {
     return segment.dot1.get_y() == segment.dot2.get_y() && segment.dot1.get_y() == point.get_y();
+}
+
+bool point_on_dot_segment_y(Dot &point, Segment &segment) {
+    return (segment.dot1.get_y() == point.get_y() || segment.dot2.get_y() == point.get_y());
 }
 
 struct cmp_for_dot_map {
@@ -50,26 +58,38 @@ struct cmp_for_dot_map {
     }
 };
 
+bool various_side(Segment &seg1, Segment &seg2, Dot &point) {
+    bool seg1_above_point = false, seg2_above_point = false;
+    if (seg1.dot2.get_y() > point.get_y())
+        seg1_above_point = true;
+    if (seg2.dot2.get_y() > point.get_y())
+        seg2_above_point = true;
+    if (seg1_above_point != seg2_above_point)
+        return true;
+    else
+        return false;
+}
+
 bool check_into(vector<Segment> &shell, int i, vector<Dot> &points,
                 map<Dot, Dot, cmp_for_dot_map> &navigate_segments_right,
                 map<Dot, Dot, cmp_for_dot_map> &navigate_segments_left) {
     Dot point = Dot(points[i].get_x(), points[i].get_y());
     bool into = false;
-    int intersection_x;
+    pair<int, bool> intersection_x;
     for (auto &segment:shell) {
         if (point_between_segment(point, segment)) {
             intersection_x = intersection(point, segment);
             if (!into) {
-                if (point.get_x() < intersection_x) {
+                if (point.get_x() < intersection_x.first - intersection_x.second) {
                     return false;
                 }
             } else {
-                if (point.get_x() <= intersection_x) {
+                if (point.get_x() < intersection_x.first) {
                     return true;
                 }
             }
             into = !into;
-        } else if (point_on_parallel_segment(point, segment)) {
+        } else if (point_on_parallel_segment_y(point, segment)) {
             Segment seg1, seg2;
             seg1 = Segment(segment.dot1, navigate_segments_right[segment.dot1]);
             seg2 = Segment(segment.dot2, navigate_segments_left[segment.dot2]);
@@ -77,11 +97,6 @@ bool check_into(vector<Segment> &shell, int i, vector<Dot> &points,
                 seg1 = Segment(segment.dot2, navigate_segments_right[segment.dot2]);
                 seg2 = Segment(segment.dot1, navigate_segments_left[segment.dot1]);
             }
-            bool seg1_above_point = false, seg2_above_point = false;
-            if (seg1.dot2.get_y() > point.get_y())
-                seg1_above_point = true;
-            if (seg2.dot2.get_y() > point.get_y())
-                seg2_above_point = true;
             if (!into) {
                 if (point.get_x() < min(segment.dot1.get_x(), segment.dot2.get_x()))
                     return false;
@@ -91,6 +106,41 @@ bool check_into(vector<Segment> &shell, int i, vector<Dot> &points,
             }
             if (point.get_x() <= max(segment.dot1.get_x(), segment.dot2.get_x()))
                 return true;
+            if (various_side(seg1, seg2, point))
+                into = !into;
+        } else if (point_on_dot_segment_y(point, segment)) {
+            //intersection_x = intersection(point, segment);
+            intersection_x.first = (segment.dot1.get_y() == point.get_y()) ? segment.dot1.get_x()
+                                                                           : segment.dot2.get_x();
+            if (point.get_x() == intersection_x.first)
+                return true;
+            if (max(segment.dot1.get_y(), segment.dot2.get_y()) > point.get_y())
+                continue;
+            Segment seg1, seg2;
+            if (segment.dot1.get_y() == point.get_y()) {
+                seg1 = Segment(segment.dot1, navigate_segments_right[segment.dot1]);
+                seg2 = Segment(segment.dot1, navigate_segments_left[segment.dot1]);
+            } else {
+                seg1 = Segment(segment.dot2, navigate_segments_right[segment.dot2]);
+                seg2 = Segment(segment.dot2, navigate_segments_left[segment.dot2]);
+            }
+            /*if (seg1.dot1.get_y() == seg1.dot2.get_y() || seg2.dot1.get_y() == seg2.dot2.get_y())
+                continue;*/
+            if (!into) {
+                if (point.get_x() < intersection_x.first) {
+                    return false;
+                }
+            } else {
+                if (point.get_x() <= intersection_x.first) {
+                    return true;
+                }
+            }
+            bool seg1_above_point = false, seg2_above_point = false;
+            if (seg1.dot2.get_y() > point.get_y())
+                seg1_above_point = true;
+            if (seg2.dot2.get_y() > point.get_y())
+                seg2_above_point = true;
+
             if (seg1_above_point != seg2_above_point)
                 into = !into;
         }
