@@ -5,7 +5,7 @@
 #include "intersection_dot_with_segment.h"
 #include "point_location.h"
 
-double intersection(Dot &point, Segment &segment) {
+double intersection(const Dot &point, const Segment &segment) {
     if (point_outside_the_segment(point, segment))
         return -INF;
 

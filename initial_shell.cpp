@@ -1,6 +1,6 @@
 #include "Segment.h"
 
-void initial_shell(int &n, int m, vector<Segment> &shell, vector<Dot> &points) {
+void initial_shell(const int n, const int m, vector<Segment> &shell, vector<Dot> &points) {
     int x, y;
     for (int i = 0; i < n; ++i) {
         cin >> x >> y;

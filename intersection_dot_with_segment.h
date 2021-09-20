@@ -3,7 +3,7 @@
 
 #include "Segment.h"
 
-double intersection(Dot &point, Segment &segment);
+double intersection(const Dot &point, const Segment &segment);
 
 
 #endif

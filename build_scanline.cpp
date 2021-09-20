@@ -2,11 +2,11 @@
 #include "segment_location.h"
 #include "intersection_dot_with_segment.h"
 
-bool reprocessing(Segment &segment, Dot &point) {
+bool reprocessing(const Segment &segment, const Dot &point) {
     return segment.dot2.get_y() == point.get_y();
 }
 
-vector<double> build_array_intersection(vector<Segment> &shell, Dot &point) {
+vector<double> build_array_intersection(const vector<Segment> &shell, const Dot &point) {
     vector<double> array_of_intersection;
     int n = shell.size();
     for (int i = 0; i < n; ++i) {

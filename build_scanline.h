@@ -4,8 +4,8 @@
 #include "vector"
 #include "Segment.h"
 
-vector<double> build_array_intersection(vector<Segment> &shell, Dot &point);
+vector<double> build_array_intersection(const vector<Segment> &shell, const Dot &point);
 
-bool reprocessing(Segment &segment, Dot &point);
+bool reprocessing(const Segment &segment, const Dot &point);
 
 #endif

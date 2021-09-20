@@ -4,6 +4,6 @@
 
 #include "Segment.h"
 
-bool various_side(Segment &seg1, Segment &seg2, Dot &point);
+bool various_side(const Segment &seg1, const Segment &seg2, const Dot &point);
 
 #endif
