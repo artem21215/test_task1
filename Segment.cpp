@@ -1,7 +1,3 @@
-//
-// Created by artem on 18.09.2021.
-//
-
 #include "Segment.h"
 
 Segment::Segment(Dot dot1, Dot dot2) : dot1(dot1), dot2(dot2) {}
